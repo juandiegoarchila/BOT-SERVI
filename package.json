@@ -1,0 +1,66 @@
+{
+  "name": "servi-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "bot": "node src/bot/whatsapp-bot.js",
+    "test": "mocha --reporter spec --exit \"src/tests/**/*.test.js\"",
+    "test:coverage": "nyc --reporter=html mocha src/tests/**/*.test.js",
+    "lint": "eslint src",
+    "format": "prettier --write src/**/*.{js,json}",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^10.0.0",
+    "@fastify/jwt": "^6.0.0",
+    "@fastify/rate-limit": "^7.0.0",
+    "@fastify/swagger": "^8.0.0",
+    "@fastify/swagger-ui": "^4.2.0",
+    "chalk": "^5.4.1",
+    "convict": "^6.0.0",
+    "dotenv": "^16.0.0",
+    "fastify": "^4.29.0",
+    "firebase-admin": "^11.0.0",
+    "mongoose": "^6.0.0",
+    "node-cache": "^5.1.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.0.0",
+    "puppeteer": "^24.4.0",
+    "qrcode-terminal": "^0.12.0",
+    "sanitize-html": "^2.0.0",
+    "string-similarity": "^4.0.4",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.0",
+    "cli-table3": "^0.6.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.0",
+    "mocha": "^10.0.0",
+    "nodemon": "^2.0.0",
+    "nyc": "^15.0.0",
+    "prettier": "^2.0.0",
+    "supertest": "^6.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "description": "**SERVI** es una API REST escalable construida con Fastify y Firebase Firestore, diseñada para servir como base de proyectos empresariales con altos requerimientos de rendimiento y seguridad.Este proyecto surge para evitar configuraciones repetitivas en nuevos desarrollos, proporcionando una plantilla modular, organizada y fácilmente adaptable a otras bases de datos (como MongoDB, PostgreSQL, MySQL, etc.) con mínimos cambios.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
