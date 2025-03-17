@@ -9,12 +9,12 @@ import {
 } from "../config/order-config.js";
 import { isWithinBusinessHours } from "../utils/order-utils.js";
 import { handleInitial } from "../handlers/initial-handlers.js";
-import { dispatchState } from "../handlers/state-dispatcher.js"; // Cambiado de processOrderState a dispatchState
+import { dispatchState } from "../handlers/state-dispatcher.js";
 import { getSecondaryMessage } from "../utils/conversation-utils.js";
 
 const conversations = new Map();
 
-export async function processOrder(phone, message) {
+export async function processOrder(phone, message, client) { // Añadimos client como parámetro
   // Ignorar mensajes de canales automatizados o vacíos
   if (
     phone.endsWith('@newsletter') ||
@@ -59,7 +59,7 @@ export async function processOrder(phone, message) {
 
   // Manejo global de comandos
   if (lowercaseMessage === "atrás" || lowercaseMessage === "atras" || lowercaseMessage === "volver") {
-    const response = dispatchState(conversation, message); // Cambiado de processOrderState a dispatchState
+    const response = dispatchState(conversation, message, client); // Pasamos client
     conversations.set(phone, conversation);
     if (typeof response === "object" && response.main) {
       return {
@@ -98,7 +98,7 @@ export async function processOrder(phone, message) {
     if (conversation.step === "initial") {
       response = await handleInitial(conversation, MENU_PHOTO_URL, MessageMedia);
     } else {
-      response = dispatchState(conversation, message); // Cambiado de processOrderState a dispatchState
+      response = dispatchState(conversation, message, client); // Pasamos client
     }
 
     // Manejar respuestas con múltiples mensajes (como el inicial con media)

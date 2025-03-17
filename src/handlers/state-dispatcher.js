@@ -4,6 +4,7 @@ import {
   handleDefiningLunchGroups,
   handleDefiningGroupSoup,
   handleDefiningGroupPrinciple,
+  handleDefiningGroupPrincipleReplacement,
   handleDefiningGroupProtein,
   handleDefiningGroupExtraProtein,
   handleDefiningGroupExtraProteinCount,
@@ -13,6 +14,7 @@ import {
   handleDefiningRemaining,
   handleDefiningDifferentSoup,  
   handleDefiningDifferentPrinciple,
+  handleDefiningDifferentPrincipleReplacement,
   handleDefiningDifferentProtein,
   handleDefiningDifferentExtraProtein,
   handleDefiningDifferentExtraProteinType,
@@ -20,6 +22,7 @@ import {
   handleDefiningDifferentSaladRice,
   handleDefiningSingleLunchSoup,
   handleDefiningSingleLunchPrinciple,
+  handleDefiningSingleLunchPrincipleReplacement,
   handleDefiningSingleLunchProtein,
   handleDefiningSingleLunchExtraProtein,
   handleDefiningSingleLunchExtraProteinType,
@@ -36,14 +39,26 @@ import {
   handleOrderingPayment,
   handleOrderingCutlery,
   handlePreviewOrder,
-  handleCompleted,
+  handleAwaitingFeedback,
+  handleAdjustingPayment, 
 } from './order-handlers.js';
 
+import {
+  handleSelectingLunchToAdjust,
+  handleSelectingAdjustment,
+  handleAdjustingField,
+  handleAdjustingNoPrinciple,
+  handleAdjustingExtraProtein,
+  handleChangingExtraProtein,
+} from './adjustment-handlers.js';
+
 const stateHandlers = {
+  // Lunch flow
   awaiting_order_count: handleAwaitingOrderCount,
   defining_lunch_groups: handleDefiningLunchGroups,
   defining_group_soup: handleDefiningGroupSoup,
   defining_group_principle: handleDefiningGroupPrinciple,
+  defining_group_principle_replacement: handleDefiningGroupPrincipleReplacement,
   defining_group_protein: handleDefiningGroupProtein,
   defining_group_extra_protein: handleDefiningGroupExtraProtein,
   defining_group_extra_protein_count: handleDefiningGroupExtraProteinCount,
@@ -53,6 +68,7 @@ const stateHandlers = {
   defining_remaining: handleDefiningRemaining,
   defining_different_soup: handleDefiningDifferentSoup,
   defining_different_principle: handleDefiningDifferentPrinciple,
+  defining_different_principle_replacement: handleDefiningDifferentPrincipleReplacement,
   defining_different_protein: handleDefiningDifferentProtein,
   defining_different_extra_protein: handleDefiningDifferentExtraProtein,
   defining_different_extra_protein_type: handleDefiningDifferentExtraProteinType,
@@ -60,11 +76,15 @@ const stateHandlers = {
   defining_different_salad_rice: handleDefiningDifferentSaladRice,
   defining_single_lunch_soup: handleDefiningSingleLunchSoup,
   defining_single_lunch_principle: handleDefiningSingleLunchPrinciple,
+  defining_single_lunch_principle_replacement: handleDefiningSingleLunchPrincipleReplacement,
   defining_single_lunch_protein: handleDefiningSingleLunchProtein,
   defining_single_lunch_extra_protein: handleDefiningSingleLunchExtraProtein,
+  adjusting_payment: handleAdjustingPayment,
   defining_single_lunch_extra_protein_type: handleDefiningSingleLunchExtraProteinType,
   defining_single_lunch_drink: handleDefiningSingleLunchDrink,
   defining_single_lunch_salad_rice: handleDefiningSingleLunchSaladRice,
+
+  // Order flow
   ordering_time: handleOrderingTime,
   ordering_same_address: handleOrderingSameAddress,
   ordering_address_single: handleOrderingAddressSingle,
@@ -73,13 +93,21 @@ const stateHandlers = {
   ordering_payment: handleOrderingPayment,
   ordering_cutlery: handleOrderingCutlery,
   preview_order: handlePreviewOrder,
-  completed: handleCompleted,
+  awaiting_feedback: handleAwaitingFeedback, // Cambiamos completed por awaiting_feedback
+
+  // Adjustment flow
+  selecting_lunch_to_adjust: handleSelectingLunchToAdjust,
+  selecting_adjustment: handleSelectingAdjustment,
+  adjusting_field: handleAdjustingField,
+  adjusting_no_principle: handleAdjustingNoPrinciple,
+  adjusting_extra_protein: handleAdjustingExtraProtein,
+  changing_extra_protein: handleChangingExtraProtein,
 };
 
-export function dispatchState(conversation, message) {
+export function dispatchState(conversation, message, client) { // Añadimos client como parámetro
   const handler = stateHandlers[conversation.step];
   if (handler) {
-    return handler(conversation, message);
+    return handler(conversation, message, client); // Pasamos client al manejador
   }
   return {
     main: `❌ Estado desconocido: ${conversation.step}. Por favor, reinicia tu pedido diciendo "hola".`,

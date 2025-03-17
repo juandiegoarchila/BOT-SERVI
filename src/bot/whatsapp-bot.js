@@ -8,6 +8,7 @@ import envConfig from '../config/env-config.js';
 import { processOrder, clearConversations } from '../services/order.service.js';
 
 const processedMessages = new Set();
+let botStartTime = null;
 
 function initializeWhatsAppClient() {
   logger.info('Creando cliente de WhatsApp...');
@@ -31,14 +32,18 @@ function initializeWhatsAppClient() {
   });
 
   client.on('authenticated', () => logger.info('Cliente autenticado con éxito'));
+
   client.on('ready', () => {
+    botStartTime = Date.now();
     logger.info('Bot de WhatsApp listo');
     logger.info(`Número de administrador: ${envConfig.adminPhoneNumber || 'No definido'}`);
   });
+
   client.on('disconnected', (reason) => {
     logger.error(`Cliente desconectado: ${reason}`);
     client.initialize();
   });
+
   client.on('auth_failure', (msg) => logger.error(`Error de autenticación: ${msg}`));
   client.on('error', (error) => logger.error('Error en el cliente de WhatsApp:', error));
 
@@ -71,19 +76,52 @@ async function sendAdminNotification(client, text) {
 }
 
 function setupMessageHandler(client) {
+  const conversations = new Map();
+
   client.on('message', async (msg) => {
     const messageId = msg.id.id;
+    const phone = msg.from;
+    const message = msg.body;
+    const timestamp = msg.timestamp * 1000;
+
     if (processedMessages.has(messageId)) {
       logger.info(`Mensaje duplicado ignorado: ${messageId}`);
       return;
     }
     processedMessages.add(messageId);
 
-    const phone = msg.from;
-    const message = msg.body;
+    if (timestamp < botStartTime) {
+      logger.info(`Ignorando mensaje antiguo de ${phone}: "${message}"`);
+      return;
+    }
+
+    if (phone.includes('@broadcast') || phone.includes('@g.us')) {
+      logger.info(`Ignorando mensaje de canal automatizado o no válido: ${phone}`);
+      return;
+    }
+
+    let conversation = conversations.get(phone) || {
+      step: 'initial',
+      phone,
+      welcomeSent: false,
+      lunches: [],
+      orderCount: 0,
+      remainingCount: 0,
+      addresses: [],
+      deliveryTime: null,
+      paymentMethod: null,
+      cutlery: null,
+    };
+
+    logger.info(`Procesando mensaje de ${phone}: "${message}" | Estado: ${conversation.step}`);
+
+    if (conversation.step === 'initial' && !conversation.welcomeSent) {
+      conversation.welcomeSent = true;
+      conversations.set(phone, conversation);
+    }
 
     try {
-      const response = await processOrder(phone, message);
+      const response = await processOrder(phone, message, client); // Pasamos client aquí
       if (response) {
         if (response.messages && Array.isArray(response.messages)) {
           for (let i = 0; i < response.messages.length; i++) {
@@ -93,18 +131,25 @@ function setupMessageHandler(client) {
         } else if (typeof response === 'string') {
           await sendMessage(client, phone, response);
         } else if (response.main && response.secondary) {
-          // Enviar main y secondary como mensajes separados
           await sendMessage(client, phone, response.main);
-          await sendMessage(client, phone, response.secondary);
+          if (response.secondary) await sendMessage(client, phone, response.secondary);
         } else if (response.reply) {
           await sendMessage(client, phone, response.reply, response.options || {});
           if (response.notify) {
             await sendAdminNotification(client, response.notify);
           }
+          if (response.clearConversation) {
+            conversations.delete(phone);
+            logger.info(`Conversación de ${phone} eliminada tras completar pedido`);
+          }
         } else {
           logger.warn(`Respuesta no manejada: ${JSON.stringify(response)}`);
           await sendMessage(client, phone, 'Hubo un error inesperado. Por favor, intenta de nuevo.');
         }
+      }
+
+      if (!response?.clearConversation) {
+        conversations.set(phone, conversation);
       }
     } catch (error) {
       logger.error('Error procesando mensaje:', error);

@@ -15,7 +15,7 @@ firebase-credentials.json
 xcfdsfsdfdsfd
 # Configuración de Husky
 .husky/
-
+.wwebjs_auth/
 # Archivos de logs y errores
 npm-debug.log*
 yarn-debug.log*
