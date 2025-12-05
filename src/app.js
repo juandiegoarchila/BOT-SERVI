@@ -6,6 +6,7 @@ import fastifyJWT from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import swaggerConfig from './config/swagger-config.js';
 import userRoutes from './routes/users.routes.js';
+import whatsappWebhookRoutes from './routes/whatsapp-webhook.routes.js';
 import sanitizeHtml from 'sanitize-html';
 import { errorHandler } from './middlewares/error-handler.js';
 import envConfig from './config/env-config.js';
@@ -71,6 +72,7 @@ app.decorate('authenticate', async (request, reply) => {
 
 swaggerConfig(app);
 app.register(userRoutes, { prefix: '/api' });
+app.register(whatsappWebhookRoutes);
 
 // Usamos tu versión alternativa de setNotFoundHandler
 app.setNotFoundHandler((request, reply) => {

@@ -1,5 +1,10 @@
 // src/handlers/state-dispatcher.js
 import {
+  handleHumanHelpWaitOptions,
+  handleAwaitingContactNumber,
+} from './initial-handlers.js';
+
+import {
   handleAwaitingOrderCount,
   handleDefiningLunchGroups,
   handleDefiningGroupSoup,
@@ -53,6 +58,10 @@ import {
 } from './adjustment-handlers.js';
 
 const stateHandlers = {
+  // Human help wait options
+  human_help_wait_options: handleHumanHelpWaitOptions,
+  awaiting_contact_number: handleAwaitingContactNumber,
+  
   // Lunch flow
   awaiting_order_count: handleAwaitingOrderCount,
   defining_lunch_groups: handleDefiningLunchGroups,

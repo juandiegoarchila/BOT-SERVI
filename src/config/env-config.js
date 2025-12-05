@@ -66,6 +66,88 @@ const convictConfig = convict({
     default: '', // Opcional, no forzamos su presencia
     env: 'ADMIN_PHONE_NUMBER',
   },
+  whatsapp: {
+    provider: {
+      doc: 'WhatsApp provider: web (whatsapp-web.js) or cloud (Meta Cloud API)',
+      format: ['web', 'cloud'],
+      default: 'web',
+      env: 'WHATSAPP_PROVIDER',
+    },
+    cloud: {
+      apiVersion: {
+        doc: 'Facebook Graph API version',
+        format: String,
+        default: 'v20.0',
+        env: 'WA_CLOUD_API_VERSION',
+      },
+      phoneId: {
+        doc: 'WhatsApp Cloud Phone Number ID',
+        format: String,
+        default: '',
+        env: 'WA_CLOUD_PHONE_ID',
+      },
+      accessToken: {
+        doc: 'WhatsApp Cloud Access Token',
+        format: String,
+        default: '',
+        env: 'WA_CLOUD_ACCESS_TOKEN',
+        sensitive: true,
+      },
+      verifyToken: {
+        doc: 'Webhook verify token for WhatsApp Cloud',
+        format: String,
+        default: '',
+        env: 'WA_CLOUD_VERIFY_TOKEN',
+      },
+      businessId: {
+        doc: 'Meta Business Account ID (optional)',
+        format: String,
+        default: '',
+        env: 'WA_CLOUD_BUSINESS_ID',
+      },
+    },
+  },
+  media: {
+    welcomeVideoPath: {
+      doc: 'Ruta local del video de bienvenida para enviar al primer mensaje',
+      format: String,
+      default: '',
+      env: 'WELCOME_VIDEO_PATH',
+    },
+    welcomeVideoUrl: {
+      doc: 'URL del video de bienvenida (se recomienda para evitar problemas de ruta)',
+      format: String,
+      default: '',
+      env: 'WELCOME_VIDEO_URL',
+    },
+    supportVideoPath: {
+      doc: 'Ruta local del segundo video de apoyo (como pedir nuevamente)',
+      format: String,
+      default: 'Cocina Casera como pedir nuevamente.mp4',
+      env: 'SUPPORT_VIDEO_PATH',
+    },
+    duplicateVideoPath: {
+      doc: 'Ruta local del video tutorial de cómo duplicar pedidos',
+      format: String,
+      default: 'duplicar.mp4',
+      env: 'DUPLICATE_VIDEO_PATH',
+    },
+    troubleshootVideoPath: {
+      doc: 'Ruta local del video tutorial de problemas para enviar pedido',
+      format: String,
+      default: 'Nodejaenviar.mp4',
+      env: 'TROUBLESHOOT_VIDEO_PATH',
+    },
+  },
+  openai: {
+    apiKey: {
+      doc: 'OpenAI API key for AI responses',
+      format: String,
+      default: '',
+      env: 'OPENAI_API_KEY',
+      sensitive: true,
+    },
+  },
 });
 
 convictConfig.validate({ allowed: 'strict' });
@@ -105,8 +187,27 @@ if (
 }
 
 // Nota: No validamos adminPhoneNumber como obligatorio para no afectar otros usos
-if (!envConfig.adminPhoneNumber) {
-  logger.warn('ADMIN_PHONE_NUMBER no está definido; las notificaciones del bot al administrador no funcionarán.');
+// Silenciar aviso si no hay adminPhoneNumber (no crítico)
+// if (!envConfig.adminPhoneNumber) {
+//   logger.info('ADMIN_PHONE_NUMBER no está definido; notificaciones al administrador desactivadas.');
+// }
+
+// Validaciones condicionales para WhatsApp Cloud
+if (envConfig.whatsapp.provider === 'cloud') {
+  const missing = [];
+  if (!envConfig.whatsapp.cloud.phoneId) missing.push('WA_CLOUD_PHONE_ID');
+  if (!envConfig.whatsapp.cloud.accessToken) missing.push('WA_CLOUD_ACCESS_TOKEN');
+  if (!envConfig.whatsapp.cloud.verifyToken) missing.push('WA_CLOUD_VERIFY_TOKEN');
+  if (missing.length) {
+    logger.error(`Missing WhatsApp Cloud variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
 }
+
+// Aviso si falta la clave de OpenAI (opcional)
+// Silenciar aviso de OpenAI cuando no se usa
+// if (!envConfig.openai.apiKey) {
+//   logger.info('OPENAI_API_KEY no está definido; funciones IA avanzadas desactivadas.');
+// }
 
 export default envConfig;

@@ -1,5 +1,17 @@
 # 🚀 SERVI - BOT
 
+## ✅ WhatsApp Business Cloud API (oficial)
+Si prefieres ir por el camino oficial (recomendado para producción y para usar botones interactivos), este proyecto ya soporta Cloud API mediante webhook.
+
+- Guía completa: ver `src/docs/whatsapp-cloud-setup.md`.
+- Resumen rápido:
+  - En `.env` define `WHATSAPP_PROVIDER=cloud` y completa `WA_CLOUD_*`.
+  - Levanta la API: `npm run dev`.
+  - Expón local con ngrok y configura el webhook en Meta: `https://<ngrok>/webhook/whatsapp`.
+  - No ejecutes `npm run bot` cuando uses Cloud API (no es necesario).
+  - Ya puedes enviar texto, imágenes y botones.
+# 🚀 SERVI - BOT
+
 ## SERVI-BOT
 SERVI-BOT es un asistente automatizado de WhatsApp diseñado para el Restaurante Cocina Casera. Permite a los clientes realizar pedidos de almuerzos de manera interactiva, especificando cantidades, opciones de comida (sopa, principio, proteína, bebida), dirección de entrega, método de pago y más. Este bot está construido con Node.js y utiliza la librería whatsapp-web.js para integrarse con WhatsApp.
 
@@ -153,6 +165,155 @@ Manejados por `state-dispatcher.js`:
 
 ## 📅 Historial de Desarrollo
 - **Marzo 13, 2025:** Versión inicial funcional con ESLint, envío de imagen del menú y notificaciones.
+- **Diciembre 5, 2025:** Implementación completa del sistema de opciones de ayuda con detección automática de pedidos web y gestión inteligente de timers.
+
+---
+
+## 📋 INFORME FINAL DE FLUJO — BOT COCINA CASERA
+
+### ✅ **Flujo de Opciones de Ayuda (2, 3, 4, 5)**
+
+#### 1️⃣ **Cliente selecciona opción → Bot responde con video**
+- El bot envía el video tutorial con el mensaje explicativo como caption (todo en UN solo mensaje)
+- Se programa un timer de 15 segundos para recordatorio
+
+#### 2️⃣ **15 segundos sin respuesta → Envío de recordatorio**
+- Se envía mensaje: "¿Aún no sabes qué pedir, veci? 😊..." 
+- Seguido del menú de opciones completo
+
+#### 3️⃣ **Cliente escribe ANTES de los 15s → Cancelación y refuerzo**
+- ✅ Se cancela inmediatamente el timeout pendiente
+- ✅ Se envía video de apoyo con mensaje de reexplicación (segunda oportunidad)
+- ✅ Se programa nuevo timer de 15 segundos
+
+#### 4️⃣ **Después del refuerzo → Nuevo ciclo de espera**
+- Si el cliente no escribe en 15s → Se envía recordatorio final + menú
+- Si el cliente escribe → Ya no se envían más videos de refuerzo
+
+### ✅ **Detección Automática de Pedido Web**
+
+#### 1️⃣ **Sistema de detección prioritaria**
+- El bot detecta automáticamente pedidos por el texto: `"¡Hola Cocina Casera!"`
+- Esta detección tiene **PRIORIDAD MÁXIMA** sobre cualquier otro flujo
+
+#### 2️⃣ **Cancelación inmediata de timers**
+```javascript
+// Se cancelan TODOS los timers de:
+- Recordatorios de opciones
+- Videos de refuerzo
+- Menús pendientes
+```
+
+#### 3️⃣ **Reseteo de banderas del flujo**
+```javascript
+// Se resetean automáticamente:
+- option5Selected = false
+- explanationSentAfterOption5 = false
+- awaitingExplanationAfterVideo = false
+- menuReminderSent = true
+- assistanceShown = false
+```
+
+#### 4️⃣ **Respuesta de confirmación única**
+- ✅ Se envía SOLO el mensaje de confirmación del pedido
+- ✅ NO se envían más videos tutoriales
+- ✅ NO se envían más menús de opciones
+- ✅ El flujo cambia completamente a gestión de pago
+
+### ✅ **Sistema de Detección de Método de Pago**
+
+#### Métodos soportados:
+1. **Efectivo** → No se esperan comprobantes, no hay recordatorios
+2. **Nequi** → Se activan recordatorios de pago (1, 3 y 5 minutos)
+3. **Daviplata** → Se activan recordatorios de pago (1, 3 y 5 minutos)
+4. **Bancolombia** → Se activan recordatorios de pago (1, 3 y 5 minutos)
+
+### ✅ **Flujo de Recordatorios de Pago**
+
+#### Cronología de recordatorios:
+- **1 minuto** después → "Por favor, comparte el comprobante de pago 📲💳"
+- **3 minutos** después → Segundo recordatorio
+- **5 minutos** después → Tercer y último recordatorio
+
+#### Cancelación automática:
+- Al enviar el comprobante → Se cancelan todos los recordatorios pendientes
+- Al detectar la imagen → Se procesa con Google Cloud Vision API
+
+### ✅ **Comportamiento Post-Pedido**
+
+#### Después de recibir el pedido web:
+1. ❌ **NO más videos tutoriales**
+2. ❌ **NO más menús de opciones**
+3. ❌ **NO más explicaciones de uso**
+4. ✅ **SOLO gestión de pago y entrega**
+
+#### El bot únicamente:
+- Confirma recepción del pedido
+- Solicita comprobante (si aplica)
+- Procesa el comprobante recibido
+- Espera mensajes del domiciliario (flujo externo)
+
+### 🔧 **Mecanismos Técnicos Implementados**
+
+#### Sistema de cancelación de timers:
+```javascript
+function cancelReminderTimeout(phone) {
+  const state = conversations.get(phone);
+  if (state && state.reminderTimeout) {
+    clearTimeout(state.reminderTimeout);
+    state.reminderTimeout = null;
+    logger.info(`✅ Timeout CANCELADO para ${phone}`);
+    return true;
+  }
+}
+```
+
+#### Detección prioritaria de pedido web:
+```javascript
+// Se ejecuta ANTES de cualquier otra lógica
+if (normalized.includes('hola cocina casera')) {
+  // Cancelar timers
+  // Resetear flags
+  // Procesar pedido
+  // Activar flujo de pago
+  return confirmationMessage;
+}
+```
+
+#### Protección contra doble procesamiento:
+```javascript
+if (state.awaitingExplanationAfterVideo && !state.webOrderReceived) {
+  // Solo entra si NO se ha recibido pedido web
+}
+```
+
+### 📊 **Estados del Bot**
+
+| Estado | Descripción | Próximo paso |
+|--------|-------------|--------------|
+| `initial` | Menú principal mostrado | Espera selección de opción |
+| `option5Selected` | Opción 2-5 seleccionada | Envía video + programa timer |
+| `awaitingExplanationAfterVideo` | Esperando respuesta tras video | Si escribe: refuerzo / Si no: recordatorio |
+| `webOrderReceived` | Pedido web detectado | Flujo de pago activo |
+| `waitingForPayment` | Esperando comprobante | Recordatorios de pago activos |
+| `paymentReceived` | Comprobante recibido | Fin del flujo automatizado |
+
+### 🎯 **Garantías del Sistema**
+
+1. ✅ **Timer único activo** - Solo un timer de recordatorio puede estar activo por usuario
+2. ✅ **Cancelación garantizada** - Los timers se cancelan al detectar actividad del usuario
+3. ✅ **Detección prioritaria** - Los pedidos web se detectan antes que cualquier otro flujo
+4. ✅ **Sin mensajes duplicados** - Los recordatorios no se envían si el usuario ya respondió
+5. ✅ **Flujo limpio post-pedido** - Ningún mensaje de ayuda se envía después del pedido
+6. ✅ **Recordatorios de pago inteligentes** - Solo se activan para métodos digitales
+
+### 🚀 **Ventajas del Sistema Actual**
+
+- **Experiencia fluida**: El cliente nunca recibe mensajes duplicados o irrelevantes
+- **Detección automática**: No requiere intervención manual para detectar pedidos
+- **Gestión inteligente**: El bot sabe cuándo cambiar de contexto (ayuda → pedido → pago)
+- **Escalabilidad**: El sistema puede manejar múltiples conversaciones simultáneas
+- **Cancelación eficiente**: Los recursos se liberan inmediatamente al detectar cambios
 
 ---
 

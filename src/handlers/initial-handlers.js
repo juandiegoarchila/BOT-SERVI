@@ -1,6 +1,7 @@
 //src/handlers/initial-handlers.js
 import { extractOrderCount } from "../utils/order-utils.js";
 import { getSecondaryMessage } from "../utils/conversation-utils.js";
+import logger from "../utils/logger.js";
 
 export async function handleInitial(conversation, menuPhotoUrl, MessageMedia) {
   conversation.welcomeSent = true;
@@ -54,6 +55,63 @@ export function handleRepeatingLastOrder(conversation, message) {
   return {
     main: `Por favor, responde "sí" o "no".`,
     secondary: getSecondaryMessage(conversation.step)
+  };
+}
+
+export function handleHumanHelpWaitOptions(conversation, message) {
+  const lowercaseMessage = message.toLowerCase().trim();
+  const option = parseInt(lowercaseMessage);
+
+  if (option === 1) {
+    // Opción 1: Esperar un poco más
+    conversation.step = 'waiting_for_human_help';
+    return {
+      main: `*Perfecto, veci 💛*\n\nTe avisaremos cuando alguien del equipo esté disponible.\n\nGracias por tu paciencia 🙏`,
+      secondary: null
+    };
+  } else if (option === 2) {
+    // Opción 2: Resolver con opciones automáticas
+    conversation.step = 'initial';
+    conversation.welcomeSent = false;
+    return {
+      main: `*¡Perfecto! 😊*\n\nVamos a resolver tu consulta. Selecciona una opción:\n\n*1️⃣ Ayuda humana*\n*2️⃣ No me deja enviar el pedido*\n*3️⃣ Cómo hago más pedidos*\n*4️⃣ ¿Sí llegan a mi dirección?*\n*5️⃣ Quiero hacer un pedido*`,
+      secondary: null
+    };
+  } else if (option === 3) {
+    // Opción 3: Dejarnos tu número
+    conversation.step = 'awaiting_contact_number';
+    return {
+      main: `*Entendido, veci 💛*\n\nDéjanos tu número de contacto y te llamaremos o escribiremos lo más pronto posible.\n\nEscribe tu número aquí (ej: 3001234567)`,
+      secondary: null
+    };
+  }
+
+  return {
+    main: `*Por favor, selecciona una opción válida:*\n\n*1️⃣* Esperar un poco más\n*2️⃣* Resolver tu consulta con las opciones automáticas\n*3️⃣* Dejarnos tu número para llamarte después`,
+    secondary: null
+  };
+}
+
+export function handleAwaitingContactNumber(conversation, message) {
+  const phoneNumber = message.trim().replace(/\D/g, '');
+
+  // Validar que sea un número de teléfono válido colombiano (10 dígitos)
+  if (phoneNumber.length >= 7 && phoneNumber.length <= 15) {
+    logger.info(`Número de contacto registrado para ${conversation.phone}: ${phoneNumber}`);
+    
+    conversation.step = 'initial';
+    conversation.welcomeSent = false;
+    conversation.contactNumberRegistered = phoneNumber;
+    
+    return {
+      main: `*Perfecto, veci 💛*\n\nHemos registrado tu número: ${phoneNumber}\n\nTe contactaremos lo más pronto posible.\n\nGracias por tu paciencia 😊`,
+      secondary: null
+    };
+  }
+
+  return {
+    main: `*El número que ingresaste no parece válido.*\n\nPor favor, escribe tu número de contacto completo (ej: 3001234567)`,
+    secondary: null
   };
 }
 
