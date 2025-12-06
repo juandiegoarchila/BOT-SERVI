@@ -333,7 +333,7 @@ export async function processOrder(phone, message, client) {
       const ai = await generateContextualReply(phone, 'explanation', raw, state);
       const text = ai || EXPLANATION_MESSAGE;
       
-      // ✅ Programar NUEVO recordatorio después de reexplicación (15 segundos)
+      // ✅ Programar NUEVO recordatorio después de reexplicación (10 minutos)
       // Este se cancelará si el usuario vuelve a escribir
       state.reminderTimeout = setTimeout(() => {
         const currentState = conversations.get(phone);
@@ -354,9 +354,9 @@ export async function processOrder(phone, message, client) {
             setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
             setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
           }
-          logger.info(`Recordatorio enviado a ${phone} después de 15s desde reexplicación`);
+          logger.info(`Recordatorio enviado a ${phone} después de 10min desde reexplicación`);
         }
-      }, 15000);
+      }, 600000);
       
       conversations.set(phone, state);
       
@@ -472,9 +472,9 @@ export async function processOrder(phone, message, client) {
               setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
               setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
             }
-            logger.info(`Recordatorio enviado a ${phone} después de 15s desde primer reexplicación`);
+            logger.info(`Recordatorio enviado a ${phone} después de 10min desde primer reexplicación`);
           }
-        }, 15000);
+        }, 600000);
         
         conversations.set(phone, state);
         
@@ -494,7 +494,7 @@ export async function processOrder(phone, message, client) {
         state.menuReminderSent = false; // Preparar para recordatorio
         conversations.set(phone, state);
         
-        // ✅ Programar recordatorio después de mostrar opciones (15 segundos)
+        // ✅ Programar recordatorio después de mostrar opciones (10 minutos)
         state.reminderTimeout = setTimeout(() => {
           const currentState = conversations.get(phone);
           if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
@@ -511,9 +511,9 @@ export async function processOrder(phone, message, client) {
               setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
               setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
             }
-            logger.info(`Recordatorio enviado a ${phone} después de 15s desde opciones de asistencia`);
+            logger.info(`Recordatorio enviado a ${phone} después de 10min desde opciones de asistencia`);
           }
-        }, 15000);
+        }, 600000);
         
         conversations.set(phone, state);
         
@@ -589,9 +589,9 @@ export async function processOrder(phone, message, client) {
                   setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                   setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
                 }
-                logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+                logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
               }
-            }, 15000);
+            }, 600000);
             
             if (envConfig.media?.troubleshootVideoPath) {
               return { 
@@ -626,9 +626,9 @@ export async function processOrder(phone, message, client) {
                   setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                   setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
                 }
-                logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+                logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
               }
-            }, 15000);
+            }, 600000);
             
             if (envConfig.media?.duplicateVideoPath) {
               return { 
@@ -664,9 +664,9 @@ export async function processOrder(phone, message, client) {
                   setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                   setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
                 }
-                logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+                logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
               }
-            }, 15000);
+            }, 600000);
             {
               const ai = await generateContextualReply(phone, 'greeting', raw, state);
               const text = ai || GREETING_MESSAGE;
@@ -827,7 +827,7 @@ export async function processOrder(phone, message, client) {
           state.menuReminderSent = false;
           conversations.set(phone, state);
           
-          // ✅ Programar recordatorio (15 segundos)
+          // ✅ Programar recordatorio (10 minutos)
           state.reminderTimeout = setTimeout(() => {
             const currentState = conversations.get(phone);
             if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
@@ -842,9 +842,9 @@ export async function processOrder(phone, message, client) {
                 setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                 setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
               }
-              logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+              logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
             }
-          }, 15000);
+          }, 600000);
           
           conversations.set(phone, state);
           
@@ -868,7 +868,7 @@ export async function processOrder(phone, message, client) {
           state.menuReminderSent = false;
           conversations.set(phone, state);
           
-          // ✅ Programar recordatorio (15 segundos)
+          // ✅ Programar recordatorio (10 minutos)
           state.reminderTimeout = setTimeout(() => {
             const currentState = conversations.get(phone);
             if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
@@ -883,9 +883,9 @@ export async function processOrder(phone, message, client) {
                 setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                 setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
               }
-              logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+              logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
             }
-          }, 15000);
+          }, 600000);
           
           conversations.set(phone, state);
           
@@ -913,7 +913,7 @@ export async function processOrder(phone, message, client) {
           state.awaitingExplanationAfterVideo = true;
           state.menuReminderSent = false;
           
-          // ✅ Programar recordatorio (15 segundos)
+          // ✅ Programar recordatorio (10 minutos)
           state.reminderTimeout = setTimeout(() => {
             const currentState = conversations.get(phone);
             if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
@@ -928,9 +928,9 @@ export async function processOrder(phone, message, client) {
                 setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                 setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
               }
-              logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+              logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
             }
-          }, 15000);
+          }, 600000);
           
           // Devolver primero el texto de la opción y luego el video con caption
           {
@@ -961,7 +961,7 @@ export async function processOrder(phone, message, client) {
           state.menuReminderSent = false;
           conversations.set(phone, state);
           
-          // ✅ Programar recordatorio (15 segundos)
+          // ✅ Programar recordatorio (10 minutos)
           state.reminderTimeout = setTimeout(() => {
             const currentState = conversations.get(phone);
             if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
@@ -976,31 +976,13 @@ export async function processOrder(phone, message, client) {
                 setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
                 setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
               }
-              logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
+              logger.info(`Recordatorio enviado a ${phone} después de 10min sin enviar pedido`);
             }
-          }, 15000);
+          }, 600000);
           
           conversations.set(phone, state);
           
-          // Programar recordatorio si no envía pedido en 15 segundos
-          state.reminderTimeout = setTimeout(() => {
-            const currentState = conversations.get(phone);
-            if (currentState && !currentState.webOrderReceived && !currentState.menuReminderSent && 
-                !currentState.waitingForHumanHelp) {
-              currentState.menuReminderSent = true;
-              conversations.set(phone, currentState);
-              
-              const reminderMsg = '¿Aún no sabes qué pedir, veci? 😊\n\nTranquilo, tómate tu tiempo. Aquí sigo para ayudarte con lo que necesites 💛';
-              const optionsMsg = '*¿En qué puedo ayudarte?*\n\n*1️⃣ Ayuda humana*\n*2️⃣ No me deja enviar el pedido*\n*3️⃣ Cómo hago más pedidos*\n*4️⃣ ¿Sí llegan a mi dirección?*\n*5️⃣ Quiero hacer un pedido*';
-              
-              if (client && typeof client.sendMessage === 'function') {
-                setTimeout(() => client.sendMessage(phone, reminderMsg), 500);
-                setTimeout(() => client.sendMessage(phone, optionsMsg), 1500);
-              }
-              logger.info(`Recordatorio enviado a ${phone} después de 15s sin enviar pedido`);
-            }
-          }, 15000);
-          
+          // Enviar video tutorial sobre duplicar pedidos
           const ai = await generateContextualReply(phone, 'greeting', raw, state);
           const text = ai || GREETING_MESSAGE;
           // Si hay video de bienvenida configurado, enviar en un solo mensaje como caption

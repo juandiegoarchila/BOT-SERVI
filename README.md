@@ -175,19 +175,19 @@ Manejados por `state-dispatcher.js`:
 
 #### 1️⃣ **Cliente selecciona opción → Bot responde con video**
 - El bot envía el video tutorial con el mensaje explicativo como caption (todo en UN solo mensaje)
-- Se programa un timer de 15 segundos para recordatorio
+- Se programa un timer de 10 minutos para recordatorio
 
-#### 2️⃣ **15 segundos sin respuesta → Envío de recordatorio**
+#### 2️⃣ **10 minutos sin respuesta → Envío de recordatorio**
 - Se envía mensaje: "¿Aún no sabes qué pedir, veci? 😊..." 
 - Seguido del menú de opciones completo
 
-#### 3️⃣ **Cliente escribe ANTES de los 15s → Cancelación y refuerzo**
+#### 3️⃣ **Cliente escribe ANTES de los 10 min → Cancelación y refuerzo**
 - ✅ Se cancela inmediatamente el timeout pendiente
 - ✅ Se envía video de apoyo con mensaje de reexplicación (segunda oportunidad)
-- ✅ Se programa nuevo timer de 15 segundos
+- ✅ Se programa nuevo timer de 10 minutos
 
 #### 4️⃣ **Después del refuerzo → Nuevo ciclo de espera**
-- Si el cliente no escribe en 15s → Se envía recordatorio final + menú
+- Si el cliente no escribe en 10 min → Se envía recordatorio final + menú
 - Si el cliente escribe → Ya no se envían más videos de refuerzo
 
 ### ✅ **Detección Automática de Pedido Web**
